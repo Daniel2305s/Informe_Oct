@@ -159,3 +159,24 @@ ventas_completadas.groupby('pago')['Cantidad'].sum().plot(
 plt.title('Ventas por Método de Pago')
 plt.ylabel('Cantidad vendida')
 st.pyplot(fig2)
+
+
+
+
+st.markdown("### 📌 Resumen Dinámico por Categoría")
+
+col_resumen = st.selectbox(
+    "Agrupar por:",
+    options=["Producto(s)", "pago", "atribucion", "Estado"]
+)
+
+pivot = df.pivot_table(
+    index=col_resumen,
+    values="Ventas netas (num)",
+    aggfunc=["count", "sum"]
+).reset_index()
+
+pivot.columns = [col_resumen, "Cantidad de ventas", "Total vendido"]
+pivot = pivot.sort_values(by="Total vendido", ascending=False)
+
+st.dataframe(pivot, use_container_width=True)
