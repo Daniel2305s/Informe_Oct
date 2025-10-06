@@ -118,7 +118,7 @@ ventas_completadas.groupby('Producto(s)')['Cantidad'].sum().sort_values(ascendin
 )
 plt.title('Ventas por Producto')
 plt.ylabel('Cantidad vendida')
-plt.xticks(rotation=45, ha='right')
+plt.xticks(ha='right')
 st.pyplot(fig)
 
 fig2, ax2 = plt.subplots(figsize=(7, 5))
