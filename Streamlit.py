@@ -166,7 +166,7 @@ st.pyplot(fig2)
 st.markdown("### 🧾 Tabla Interactiva de Ventas")
 st.dataframe(
     df[[
-        'Número de pedido',
+        'Pedido #',
         'Fecha',
         'Producto(s)',
         'Cantidad',
