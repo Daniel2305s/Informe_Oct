@@ -64,7 +64,7 @@ def obtener_top(df, columna):
     return "No disponible"
 
 producto_top = obtener_top(ventas_completadas, 'producto')
-origen_top = obtener_top(ventas_completadas, 'atribución')
+origen_top = obtener_top(ventas_completadas, 'atribucion')
 pago_top = obtener_top(ventas_completadas, 'pago')
 
 # ==========================
