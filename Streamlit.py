@@ -72,7 +72,10 @@ origen_top = ventas_completadas.groupby('atribucion')['Cantidad'].sum().nlargest
 pago_group = ventas_completadas.groupby('pago')
 pago_top_row = pago_group['Cantidad'].sum().sort_values(ascending=False).index[0]
 pago_top_valor = pago_group['Ventas netas (num)'].sum().loc[pago_top_row]
-pago_top_ventas = pago_group['Cantidad'].count().loc[pago_top_row]  # 👈 cantidad de ventas por método
+
+# ✅ contar pedidos únicos correctamente
+pago_top_ventas = ventas_completadas[ventas_completadas['pago'] == pago_top_row]['Pedido #'].nunique()
+
 
 # ==============================
 # 📊 Mostrar métricas
