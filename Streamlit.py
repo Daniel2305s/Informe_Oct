@@ -72,6 +72,7 @@ origen_top = ventas_completadas.groupby('atribucion')['Cantidad'].sum().nlargest
 pago_group = ventas_completadas.groupby('pago')
 pago_top_row = pago_group['Cantidad'].sum().sort_values(ascending=False).index[0]
 pago_top_valor = pago_group['Ventas netas (num)'].sum().loc[pago_top_row]
+pago_top_ventas = pago_group['Cantidad'].count().loc[pago_top_row]  # 👈 cantidad de ventas por método
 
 # ==============================
 # 📊 Mostrar métricas
@@ -82,20 +83,23 @@ col2.metric("Ventas devueltas", total_ventas_devueltas)
 col3.metric("Productos vendidos", int(total_productos_vendidos))
 col4.metric("Total dinero", f"${total_dinero:,.0f}")  # 👈 número completo sin cortar
 
+# Producto más vendido
 st.markdown(
     f"<p class='metric-text'>🏆 <b>Producto más vendido:</b> {producto_top} "
     f"(<b>{producto_top_cant}</b> unidades)</p>",
     unsafe_allow_html=True
 )
 
+# Origen top
 st.markdown(
     f"<p class='metric-text'>📈 <b>Origen con más ventas:</b> {origen_top}</p>",
     unsafe_allow_html=True
 )
 
+# Método de pago top (con total + número de ventas)
 st.markdown(
     f"<p class='metric-text'>💳 <b>Método de pago más usado:</b> {pago_top_row} "
-    f"— Total: <b>${pago_top_valor:,.0f}</b></p>",
+    f"— Total: <b>${pago_top_valor:,.0f}</b> — Ventas: <b>{pago_top_ventas}</b></p>",
     unsafe_allow_html=True
 )
 
