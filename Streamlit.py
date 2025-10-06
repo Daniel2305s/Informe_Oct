@@ -127,8 +127,8 @@ def mostrar_info_devoluciones(df_devueltas):
     total_valor_devueltas = df_devueltas['Ventas netas (num)'].sum()
 
     # Extraer números de pedido desde la columna correcta
-    if 'Número de pedido' in df_devueltas.columns:
-        pedidos = df_devueltas['Número de pedido'].astype(str).tolist()
+    if 'Pedido #' in df_devueltas.columns:
+        pedidos = df_devueltas['Pedido #'].astype(str).tolist()
         pedidos_texto = ", ".join(pedidos)
     else:
         pedidos_texto = "❌ No se encontró la columna 'Número de pedido' en los datos."
