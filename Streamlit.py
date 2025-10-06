@@ -95,6 +95,11 @@ col4.markdown(
     unsafe_allow_html=True
 )
 
+#Producto Top
+st.markdown(
+    f"<p class='metric-text'>🏆 <b>Producto más Vendido:</b> {producto_top}</p>",
+    unsafe_allow_html=True
+)
 
 # Origen top
 st.markdown(
