@@ -116,6 +116,23 @@ st.markdown(
 )
 
 # ==============================
+# 🔸 Nueva función: Ventas devueltas
+# ==============================
+def mostrar_info_devoluciones(df_devueltas):
+    if df_devueltas.empty:
+        st.info("✅ No hay ventas devueltas en este periodo.")
+        return
+
+    total_valor_devueltas = df_devueltas['Ventas netas (num)'].sum()
+    pedidos = df_devueltas['Numero de pedido'].astype(str).tolist()
+
+    st.markdown(f"### 💸 Ventas Devueltas")
+    st.markdown(f"**Valor total devuelto:** ${total_valor_devueltas:,.0f}")
+    st.markdown(f"**Números de pedido devueltos:** {', '.join(pedidos)}")
+
+mostrar_info_devoluciones(ventas_devueltas)
+
+# ==============================
 # 📈 Gráficos
 # ==============================
 fig, ax = plt.subplots(figsize=(10, 5))
