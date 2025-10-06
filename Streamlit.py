@@ -81,14 +81,20 @@ col1, col2, col3, col4 = st.columns(4)
 col1.metric("Ventas exitosas", total_ventas_exitosas)
 col2.metric("Ventas devueltas", total_ventas_devueltas)
 col3.metric("Productos vendidos", int(total_productos_vendidos))
-col4.metric("Total dinero", f"${total_dinero:,.0f}")  # 👈 número completo sin cortar
 
-# Producto más vendido
-st.markdown(
-    f"<p class='metric-text'>🏆 <b>Producto más vendido:</b> {producto_top} "
-    f"(<b>{producto_top_cant}</b> unidades)</p>",
+# 👇 Cambiamos col4.metric por markdown con estilo para evitar truncado
+col4.markdown(
+    f"""
+    <div style="text-align: center;">
+        <div style="font-size: 0.9rem; color: gray;">Total dinero</div>
+        <div style="font-size: 1.4rem; font-weight: bold; white-space: nowrap;">
+            ${total_dinero:,.0f}
+        </div>
+    </div>
+    """,
     unsafe_allow_html=True
 )
+
 
 # Origen top
 st.markdown(
