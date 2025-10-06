@@ -1,101 +1,120 @@
 import streamlit as st
 import pandas as pd
-from babel.numbers import format_currency
+import matplotlib.pyplot as plt
+import re
 
-# =========================
-# CONFIGURACIÓN DE LA PÁGINA
-# =========================
-st.set_page_config(
-    page_title="Informe de Ventas",
-    page_icon="📊",
-    layout="wide"
-)
+# ==============================
+# 🌸 Apariencia personalizada
+# ==============================
+st.markdown("""
+    <style>
+        .reportview-container { font-family: 'Montserrat', sans-serif; }
+        h1, h2 { color: #e72380; }
+        body { background-color: #fff; }
+        .sidebar .sidebar-content { background-color: #ed6da6; }
+        .metric-text { font-size: 1.1rem; }
+    </style>
+""", unsafe_allow_html=True)
 
-# =========================
-# CARGAR DATOS DESDE GOOGLE SHEETS
-# =========================
-sheet_url = "https://docs.google.com/spreadsheets/d/1HLsdLZW_uihIRGl1tP7ehZwRUTuDXtDUz_FTNkcA1hA/export?format=csv&gid=0"
-df = pd.read_csv(sheet_url)
+st.title("📊 Informe de Ventas")
 
-# Limpieza básica por si hay filas vacías
-df = df.dropna(how='all')
+# ==============================
+# 📥 Cargar datos desde Google Sheets
+# ==============================
+SHEET_ID = "1HLsdLZW_uihIRGl1tP7ehZwRUTuDXtDUz_FTNkcA1hA"
+csv_url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid=0"
 
-# Asegurarse que las columnas numéricas estén en el tipo correcto
-df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0)
-df['Total'] = pd.to_numeric(df['Total'], errors='coerce').fillna(0)
+@st.cache_data
+def cargar_datos(url):
+    df = pd.read_csv(url)
+    df.columns = df.columns.str.strip()
+    return df
 
-# =========================
-# TÍTULO
-# =========================
-st.markdown("## 📊 **Informe de Ventas**")
+df = cargar_datos(csv_url)
 
-# =========================
-# MÉTRICAS BÁSICAS
-# =========================
-ventas_exitosas = len(df[df['Estado'].str.lower() == 'exitosa'])
-ventas_devueltas = len(df[df['Estado'].str.lower() == 'devuelta'])
-productos_vendidos = int(df['Cantidad'].sum())
-total_dinero = df['Total'].sum()
+# ==============================
+# 🧮 Preprocesamiento
+# ==============================
+def extraer_cantidad(texto):
+    match = re.match(r"(\d+)[×x]", str(texto).strip())
+    if match:
+        return int(match.group(1))
+    return 1
 
+df['Cantidad'] = df['Producto(s)'].apply(extraer_cantidad)
+
+# Convertir Ventas netas a float (quitando símbolos $ y comas)
+df['Ventas netas (num)'] = df['Ventas netas'].replace('[\$,]', '', regex=True).astype(float)
+
+ventas_completadas = df[df['Estado'].str.lower() == 'completed']
+ventas_devueltas = df[df['Estado'].str.lower() == 'refunded']
+
+# ==============================
+# 📌 Métricas principales
+# ==============================
+total_ventas_exitosas = ventas_completadas.shape[0]
+total_ventas_devueltas = ventas_devueltas.shape[0]
+total_productos_vendidos = ventas_completadas['Cantidad'].sum()
+total_dinero = ventas_completadas['Ventas netas (num)'].sum()
+
+# ==============================
+# 🏆 Top Producto / Origen / Pago
+# ==============================
+# Producto top
+producto_group = ventas_completadas.groupby('Producto(s)')['Cantidad'].sum().sort_values(ascending=False)
+producto_top = producto_group.index[0]
+producto_top_cant = producto_group.iloc[0]
+
+# Origen top
+origen_top = ventas_completadas.groupby('atribucion')['Cantidad'].sum().nlargest(1).index[0]
+
+# Pago top
+pago_group = ventas_completadas.groupby('pago')
+pago_top_row = pago_group['Cantidad'].sum().sort_values(ascending=False).index[0]
+pago_top_valor = pago_group['Ventas netas (num)'].sum().loc[pago_top_row]
+
+# ==============================
+# 📊 Mostrar métricas
+# ==============================
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Ventas exitosas", ventas_exitosas)
-col2.metric("Ventas devueltas", ventas_devueltas)
-col3.metric("Productos vendidos", productos_vendidos)
-col4.markdown(
-    f"<div style='font-size:20px; font-weight:bold;'>{format_currency(total_dinero, 'COP', locale='es_CO')}</div>",
+col1.metric("Ventas exitosas", total_ventas_exitosas)
+col2.metric("Ventas devueltas", total_ventas_devueltas)
+col3.metric("Productos vendidos", int(total_productos_vendidos))
+col4.metric("Total dinero", f"${total_dinero:,.0f}")  # 👈 número completo sin cortar
+
+st.markdown(
+    f"<p class='metric-text'>🏆 <b>Producto más vendido:</b> {producto_top} "
+    f"(<b>{producto_top_cant}</b> unidades)</p>",
     unsafe_allow_html=True
 )
 
-# =========================
-# PRODUCTO MÁS VENDIDO
-# =========================
-producto_mas_vendido = (
-    df.groupby('Producto')
-    .agg({'Cantidad': 'sum'})
-    .sort_values('Cantidad', ascending=False)
-    .head(1)
-    .reset_index()
+st.markdown(
+    f"<p class='metric-text'>📈 <b>Origen con más ventas:</b> {origen_top}</p>",
+    unsafe_allow_html=True
 )
 
-if not producto_mas_vendido.empty:
-    nombre_producto = producto_mas_vendido['Producto'][0]
-    cantidad_producto = int(producto_mas_vendido['Cantidad'][0])
-    st.markdown(
-        f"🏆 **Producto más vendido:** {nombre_producto} ({cantidad_producto} unidades)"
-    )
-
-# =========================
-# ORIGEN CON MÁS VENTAS
-# =========================
-origen_top = (
-    df['Origen']
-    .value_counts()
-    .reset_index()
-    .rename(columns={'index': 'Origen', 'Origen': 'Cantidad'})
+st.markdown(
+    f"<p class='metric-text'>💳 <b>Método de pago más usado:</b> {pago_top_row} "
+    f"— Total: <b>${pago_top_valor:,.0f}</b></p>",
+    unsafe_allow_html=True
 )
 
-if not origen_top.empty:
-    origen_mas_ventas = origen_top.iloc[0]['Origen']
-    st.markdown(f"📈 **Origen con más ventas:** {origen_mas_ventas}")
-
-# =========================
-# MÉTODO DE PAGO MÁS USADO
-# =========================
-metodo_pago = (
-    df.groupby('Método de pago')
-    .agg({'Total': 'sum', 'Número de venta': 'count'})
-    .sort_values('Número de venta', ascending=False)
-    .head(1)
-    .reset_index()
+# ==============================
+# 📈 Gráficos
+# ==============================
+fig, ax = plt.subplots(figsize=(10, 5))
+ventas_completadas.groupby('Producto(s)')['Cantidad'].sum().sort_values(ascending=False).plot(
+    kind='bar', color='#e72380', ax=ax
 )
+plt.title('Ventas por Producto')
+plt.ylabel('Cantidad vendida')
+plt.xticks(rotation=45, ha='right')
+st.pyplot(fig)
 
-if not metodo_pago.empty:
-    metodo = metodo_pago['Método de pago'][0]
-    total_metodo = metodo_pago['Total'][0]
-    num_ventas_metodo = metodo_pago['Número de venta'][0]
-
-    st.markdown(
-        f"💳 **Método de pago más usado:** {metodo} — "
-        f"Total: **{format_currency(total_metodo, 'COP', locale='es_CO')}**, "
-        f"en **{num_ventas_metodo} ventas**"
-    )
+fig2, ax2 = plt.subplots(figsize=(7, 5))
+ventas_completadas.groupby('pago')['Cantidad'].sum().plot(
+    kind='bar', color='#ed6da6', ax=ax2
+)
+plt.title('Ventas por Método de Pago')
+plt.ylabel('Cantidad vendida')
+st.pyplot(fig2)
