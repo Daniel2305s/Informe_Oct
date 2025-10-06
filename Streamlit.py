@@ -123,12 +123,20 @@ def mostrar_info_devoluciones(df_devueltas):
         st.info("✅ No hay ventas devueltas en este periodo.")
         return
 
+    # Calcular valor total devuelto
     total_valor_devueltas = df_devueltas['Ventas netas (num)'].sum()
-    pedidos = df_devueltas['Numero de pedido'].astype(str).tolist()
 
-    st.markdown(f"### 💸 Ventas Devueltas")
+    # Extraer números de pedido desde la columna correcta
+    if 'Número de pedido' in df_devueltas.columns:
+        pedidos = df_devueltas['Número de pedido'].astype(str).tolist()
+        pedidos_texto = ", ".join(pedidos)
+    else:
+        pedidos_texto = "❌ No se encontró la columna 'Número de pedido' en los datos."
+
+    # Mostrar en Streamlit
+    st.markdown("### 💸 Ventas Devueltas")
     st.markdown(f"**Valor total devuelto:** ${total_valor_devueltas:,.0f}")
-    st.markdown(f"**Números de pedido devueltos:** {', '.join(pedidos)}")
+    st.markdown(f"**Números de pedido devueltos:** {pedidos_texto}")
 
 mostrar_info_devoluciones(ventas_devueltas)
 
