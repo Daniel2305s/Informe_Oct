@@ -97,7 +97,8 @@ col4.markdown(
 
 #Producto Top
 st.markdown(
-    f"<p class='metric-text'>🏆 <b>Producto más Vendido:</b> {producto_top}</p>",
+    f"<p class='metric-text'>🏆 <b>Producto más vendido:</b> {producto_top} "
+    f"(<b>{producto_top_cant}</b> unidades)</p>",
     unsafe_allow_html=True
 )
 
