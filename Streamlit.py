@@ -163,20 +163,17 @@ st.pyplot(fig2)
 
 
 
-st.markdown("### 📌 Resumen Dinámico por Categoría")
-
-col_resumen = st.selectbox(
-    "Agrupar por:",
-    options=["Producto(s)", "pago", "atribucion", "Estado"]
+st.markdown("### 🧾 Tabla Interactiva de Ventas")
+st.dataframe(
+    df[[
+        'Número de pedido',
+        'Fecha',
+        'Producto(s)',
+        'Cantidad',
+        'Ventas netas',
+        'Estado',
+        'pago',
+        'atribucion'
+    ]],
+    use_container_width=True
 )
-
-pivot = df.pivot_table(
-    index=col_resumen,
-    values="Ventas netas (num)",
-    aggfunc=["count", "sum"]
-).reset_index()
-
-pivot.columns = [col_resumen, "Cantidad de ventas", "Total vendido"]
-pivot = pivot.sort_values(by="Total vendido", ascending=False)
-
-st.dataframe(pivot, use_container_width=True)
