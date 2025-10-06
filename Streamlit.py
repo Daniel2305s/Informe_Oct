@@ -16,7 +16,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("📊 Informe de Ventas Septiembre 2025")
+st.title("📊 Informe de Ventas (Septiembre 2025)")
 
 # ==============================
 # 📥 Cargar datos desde Google Sheets
